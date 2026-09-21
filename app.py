@@ -22,7 +22,11 @@ from routes.map import map_bp
 app = Flask(__name__)
 
 # Allow Flutter Web to access Flask APIs
-CORS(app)
+CORS(app
+     , resources={r"/api/*": {"origins": "*"}}
+     , methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+      allow_headers=["Content-Type", "Authorization"]
+     )
 
 app.register_blueprint(auth, url_prefix="/api")
 app.register_blueprint(places, url_prefix="/api")
