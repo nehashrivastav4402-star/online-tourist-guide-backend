@@ -24,7 +24,7 @@ app = Flask(__name__)
 # Allow Flutter Web to access Flask APIs
 CORS(app
      , resources={r"/api/*": {"origins": "*"}}
-     , methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+     , methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
       allow_headers=["Content-Type", "Authorization"]
      )
 
