@@ -1,5 +1,9 @@
 from flask import Blueprint, request, jsonify
 import mysql.connector
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 contact = Blueprint("contact", __name__)
 
@@ -10,13 +14,13 @@ contact = Blueprint("contact", __name__)
 
 def get_db_connection():
     return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="NEHA@2004",
-        database="tourist_guide"
+        host=os.getenv("DB_HOST", "localhost"),
+        port=int(os.getenv("DB_PORT", "3306")),
+        user=os.getenv("DB_USER", "root"),
+        password=os.getenv("DB_PASSWORD", ""),
+        database=os.getenv("DB_NAME", "tourist_guide"),
+        ssl_disabled=False
     )
-
-
 # ============================================================
 # USER - SUBMIT CONTACT MESSAGE
 # ============================================================
