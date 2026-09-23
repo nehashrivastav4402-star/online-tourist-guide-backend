@@ -46,7 +46,6 @@ def register():
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
-        # Check existing email
         cursor.execute(
             "SELECT id FROM users WHERE email = %s",
             (email,)
@@ -102,7 +101,7 @@ def register():
 
 
 # ============================================================
-# LOGIN
+# NORMAL LOGIN
 # ============================================================
 
 @auth.route("/login", methods=["POST"])
@@ -165,5 +164,91 @@ def login():
         return jsonify({
             "success": False,
             "message": "Login failed",
+            "error": str(e)
+        }), 500
+
+
+# ============================================================
+# GOOGLE LOGIN
+# ============================================================
+
+@auth.route("/google-login", methods=["POST"])
+def google_login():
+    try:
+        data = request.get_json()
+
+        name = data.get("name", "").strip()
+        email = data.get("email", "").strip()
+
+        if not name or not email:
+            return jsonify({
+                "success": False,
+                "message": "Google account details are required"
+            }), 400
+
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # Check if Google email already exists
+        cursor.execute(
+            """
+            SELECT id, name, email, role
+            FROM users
+            WHERE email = %s
+            """,
+            (email,)
+        )
+
+        user = cursor.fetchone()
+
+        # Existing user
+        if user:
+            cursor.close()
+            conn.close()
+
+            return jsonify({
+                "success": True,
+                "message": "Google login successful",
+                "user": {
+                    "id": user["id"],
+                    "name": user["name"],
+                    "email": user["email"],
+                    "role": user["role"]
+                }
+            }), 200
+
+        # New Google user
+        cursor.execute(
+            """
+            INSERT INTO users (name, email, password, role)
+            VALUES (%s, %s, %s, %s)
+            """,
+            (name, email, "GOOGLE_USER", "user")
+        )
+
+        conn.commit()
+
+        user_id = cursor.lastrowid
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            "success": True,
+            "message": "Google registration and login successful",
+            "user": {
+                "id": user_id,
+                "name": name,
+                "email": email,
+                "role": "user"
+            }
+        }), 201
+
+    except Exception as e:
+        print("GOOGLE LOGIN ERROR:", e)
+
+        return jsonify({
+            "success": False,
+            "message": "Google login failed",
             "error": str(e)
         }), 500
